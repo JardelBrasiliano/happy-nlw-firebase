@@ -100,29 +100,29 @@ function OrphanageMap() {
 
                     {
                         !loading ? 
-                        listOrphanage.map( ( orphanage:any ) => {
-                            return(
-                                <Marker
-                                    key={orphanage.key}
-                                    icon={mapIcon}
-                                    position={[orphanage.latitude,orphanage.longitude]}
-                                >
-                                    <Popup 
-                                        closeButton={false} 
-                                        minWidth={240} 
-                                        maxWidth={240} 
-                                        className="map-popup"
+                            listOrphanage.map( ( orphanage:any ) => {
+                                return(
+                                    <Marker
+                                        key={orphanage.key}
+                                        icon={mapIcon}
+                                        position={[orphanage.latitude,orphanage.longitude]}
                                     >
-                                        {orphanage.name}
-                                        <Link to={`orphanagemap/${orphanage.key}`}>
-                                            <FiArrowRight size={20} color="#fff"/> 
-                                        </Link>
-                                    </Popup>
-                                </Marker>        
-                            )
-                        })
-                        :
-                        null
+                                        <Popup 
+                                            closeButton={false} 
+                                            minWidth={240} 
+                                            maxWidth={240} 
+                                            className="map-popup"
+                                        >
+                                            {orphanage.name}
+                                            <Link to={`orphanagemap/${orphanage.key}`}>
+                                                <FiArrowRight size={20} color="#fff"/> 
+                                            </Link>
+                                        </Popup>
+                                    </Marker>        
+                                )
+                            })
+                            :
+                            null
                     }
                 </Map>
 
