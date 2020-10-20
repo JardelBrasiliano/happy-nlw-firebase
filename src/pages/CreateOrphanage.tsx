@@ -6,6 +6,7 @@ import { useHistory } from 'react-router-dom';
 /** Componentes */
 import Sidebar from '../components/Sidebar';
 /** Utils */
+import firebase from "../config/firebase";
 import mapIcon from '../utils/mapIcon';
 /** Style */
 import '../styles/pages/create-orphanage.css';
@@ -25,7 +26,7 @@ export default function CreateOrphanage() {
 
   function handleMapClick(event: LeafletMouseEvent) {
     const { lat, lng } = event.latlng;
-
+    
     SetPosition({
       latitude: lat,
       longitude: lng
@@ -52,21 +53,19 @@ export default function CreateOrphanage() {
     event.preventDefault();
 
     const { latitude, longitude } = position;
-
-    const data =  new FormData();
-
-    data.append('name', name);
-    data.append('about', about);
-    data.append('latitude', String(latitude));
-    data.append('longitude', String(longitude));
-    data.append('instructions', instructions);
-    data.append('opening_hours', opening_hours);
-    data.append('open_on_weekends', String(open_on_weekends));
-
-    images.forEach(image => {
-      data.append('images', image);
-    });
-
+    
+    const orphanage = {
+      name,
+      about,
+      latitude,
+      longitude,
+      instructions,
+      opening_hours,
+      open_on_weekends
+    }
+    
+    firebase.database().ref('orphanage/').push(orphanage)
+    
     alert('Cadastro realizado com sucesso!');
 
     history.push('/app');
@@ -82,7 +81,7 @@ export default function CreateOrphanage() {
             <legend>Dados</legend>
 
             <Map 
-              center={[-27.2092052,-49.6401092]} 
+              center={[-3.7384076,-38.5706679]} 
               style={{ width: '100%', height: 280 }}
               zoom={15}
               onclick={handleMapClick}
@@ -94,7 +93,7 @@ export default function CreateOrphanage() {
                 <Marker 
                   interactive={false} 
                   icon={mapIcon} 
-                  position={[-27.2092052,-49.6401092]} 
+                  position={[position.latitude,position.longitude]} 
                 />
               )}
             </Map>
@@ -178,7 +177,7 @@ export default function CreateOrphanage() {
             </div>
           </fieldset>
 
-          <button className="confirm-button" type="submit">
+          <button onClick={handleSubmit} className="confirm-button" type="submit">
             Confirmar
           </button>
         </form>

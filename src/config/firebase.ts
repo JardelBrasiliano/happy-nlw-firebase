@@ -1,5 +1,4 @@
-import 'dontenv'
-
+import 'dotenv/config';
 
 import firebase from 'firebase';
 
