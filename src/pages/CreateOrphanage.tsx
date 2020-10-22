@@ -179,9 +179,9 @@ export default function CreateOrphanage() {
 
               <ul className="images-container">
                 {previewImages.map((image, index) => (
-                  <li key={`${index}`} >
+                  <li key={`${index}`}  onClick={(e) => removeImage(e.target ,images) } >
                     <GrClose className="close-image"/>
-                    <img id={`${index}`}  key={image} src={image} alt={name} onClick={(e) => removeImage(e.target ,images) }/>
+                    <img id={`${index}`}  key={image} src={image} alt={name}/>
                   </li>
                 ))}
 
