@@ -63,7 +63,9 @@ export default function CreateOrphanage() {
       let listAux: any[] = [];
       
       images.forEach((imagem, index) => {
-        if(imagem.size > 55000){
+        console.log(imagem.size);
+        
+        if(imagem.size > 60000){
           alert('tamanho da imagem muito grande');
           erroSizeImage = false;
           setErro(true)
