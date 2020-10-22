@@ -19,10 +19,13 @@ export default function CreateOrphanage() {
   const [name, setName] = useState('');
   const [about, setAbout] = useState('');
   const [instructions, setInstructions] = useState('');
-  const [opening_hours, setOpeningHours] = useState('');
+  const [open_hours, setOpenHours] = useState('');
+  const [close_hours, setCloseHours] = useState('');
   const [open_on_weekends, setOpenOnWeekends] = useState(true);
   const [images, setImages] = useState<File[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
+
+  const [erro, setErro] = useState(false);
 
   function handleMapClick(event: LeafletMouseEvent) {
     const { lat, lng } = event.latlng;
@@ -51,24 +54,47 @@ export default function CreateOrphanage() {
   
   async function handleSubmit(event:FormEvent) {
     event.preventDefault();
-
     const { latitude, longitude } = position;
-    
-    const orphanage = {
-      name,
-      about,
-      latitude,
-      longitude,
-      instructions,
-      opening_hours,
-      open_on_weekends
-    }
-    
-    firebase.database().ref('orphanage/').push(orphanage)
-    
-    alert('Cadastro realizado com sucesso!');
+    const OpeningHours = `De ${open_hours} a ${close_hours}`
 
-    history.push('/app');
+    if((images.length > 0) && !!latitude && !!longitude){
+      let listAux: any[] = [];
+      
+      images.forEach((imagem, index) => {
+        listAux[index] = imagem.name;
+      });
+      console.log(listAux);
+      setImages(listAux);
+      
+      const orphanage = {
+        name,
+        about,
+        images: listAux,
+        latitude,
+        longitude,
+        instructions,
+        opening_hours: OpeningHours,
+        open_on_weekends
+      }
+
+      images.forEach((imagem) => {
+        firebase.storage().ref(`imagens/${imagem.name}`).put(imagem).then(() => {
+          console.log('ok', imagem.name);
+        }).catch(() => { return console.log('erro no upload da imagem'); })
+      })
+
+      firebase.database().ref('orphanage/').push(orphanage).then(() => {
+        alert('Cadastro realizado com sucesso!');
+    
+        history.push('/app');
+      }).catch(() => {
+        alert('algo de errado não esta certo.')
+      })
+
+    }else{ 
+      alert('Coloque uma imagem ou sua localização no mapa.')
+      setErro(true);
+    }
   }
 
   return (
@@ -104,6 +130,7 @@ export default function CreateOrphanage() {
                 id="name"
                 value={name}
                 onChange={event => setName(event.target.value)}
+                required
               />
             </div>
 
@@ -114,6 +141,7 @@ export default function CreateOrphanage() {
                 maxLength={300}
                 value={about}
                 onChange={event => setAbout(event.target.value)}
+                required
               />
             </div>
 
@@ -130,7 +158,12 @@ export default function CreateOrphanage() {
                 </label>
               </div>
 
-              <input multiple onChange={handleSelectImagens} type="file" id="image[]"/>
+              <input 
+                id="image[]"
+                multiple 
+                onChange={handleSelectImagens} 
+                type="file"
+              />
             </div>
           </fieldset>
 
@@ -148,11 +181,24 @@ export default function CreateOrphanage() {
 
             <div className="input-block">
               <label htmlFor="opening_hours">Horário de funcinamento</label>
-              <input
-                id="opening_hours"
-                value={opening_hours}
-                onChange={event => setOpeningHours(event.target.value)}
-              />
+              <label htmlFor="open_hours">De</label>
+              <input 
+                id="open_hours"
+                type="time" 
+                min="00:00" 
+                max="24:00" 
+                onChange={event => setOpenHours(event.target.value)}
+                required>
+              </input>
+              <label htmlFor="close_hours">a</label>
+              <input 
+                id="close_hours" 
+                type="time" 
+                min="00:00" 
+                max="24:00" 
+                onChange={event => setCloseHours(event.target.value)}
+                required>
+              </input>
             </div>
 
             <div className="input-block">
@@ -186,4 +232,3 @@ export default function CreateOrphanage() {
   );
 }
 
-// return `https://a.tile.openstreetmap.org/${z}/${x}/${y}.png`;

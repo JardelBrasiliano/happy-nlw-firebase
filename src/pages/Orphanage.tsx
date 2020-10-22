@@ -19,10 +19,7 @@ interface Orphanage {
   instructions: string;
   opening_hours: string;
   open_on_weekends: string;
-  images: Array<{
-    id: number;
-    url: string;
-  }>;
+  images: Array<[]>;
 }
 
 interface OrphanageParams {
@@ -32,22 +29,31 @@ interface OrphanageParams {
 export default function Orphanage() {
   const params = useParams<OrphanageParams>();
   const [orphanage, setOrphanage] = useState<Orphanage>();
+  const [imagens, setImagens] = useState<any[]>();
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-  // api.get(`orphanages/${params.id}`).then(response => {
-  //   setOrphanage(response.data);
-  // });
-    firebase.database().ref(`orphanage/${params.id}`).once('value').then(( snapshot ) => {
-      console.log(snapshot.val());
-      
-      setOrphanage(snapshot.val());
-      setLoading(false);
-    })
+  
+    if(loading){
+      firebase.database().ref(`orphanage/${params.id}`).once('value').then(( snapshot ) => {
+        setOrphanage(snapshot.val());
+        setLoading(false);
+        let listAux: any[] = [];
+        snapshot.val().images.forEach((img:any) => {
+          firebase.storage().ref(`imagens/${img}`).getDownloadURL().then((url) => {
+            listAux.push(url);
+            setImagens([listAux])
+          })
+          setLoading(false);
+        });
+        
+      })
+    }
+    
   }, [params.id]);
-
-  if (!orphanage) {
+  
+  if (!orphanage || !imagens) {
     return <h1>Carregando...</h1>
   }
 
@@ -56,48 +62,25 @@ export default function Orphanage() {
       <Sidebar />
 
       <main>
-        {/* <div className="orphanage-details">
-          <img src={orphanage.images[activeImageIndex].url} alt={orphanage.name} />
-
-          <div className="images">
-            {orphanage.images.map((image, index) => {
-              return (
-                <button 
-                  key={image.id} 
-                  className={activeImageIndex === index ? 'active' : ''}
-                  type="button"
-                  onClick={() => setActiveImageIndex(index)}
-                >
-                  <img src={image.url} alt={orphanage.name} />
-                </button>
-              );
-            })}
-          </div>
-        </div> */}
-
         <div className="orphanage-details">
-          <img src="https://www.gcd.com.br/wp-content/uploads/2020/08/safe_image.jpg" alt="Lar das meninas" />
+          <>
+            <img src={imagens[0][activeImageIndex]} alt={orphanage.name} />
 
-          <div className="images">
-            <button className="active" type="button">
-              <img src="https://www.gcd.com.br/wp-content/uploads/2020/08/safe_image.jpg" alt="Lar das meninas" />
-            </button>
-            <button type="button">
-              <img src="https://www.gcd.com.br/wp-content/uploads/2020/08/safe_image.jpg" alt="Lar das meninas" />
-            </button>
-            <button type="button">
-              <img src="https://www.gcd.com.br/wp-content/uploads/2020/08/safe_image.jpg" alt="Lar das meninas" />
-            </button>
-            <button type="button">
-              <img src="https://www.gcd.com.br/wp-content/uploads/2020/08/safe_image.jpg" alt="Lar das meninas" />
-            </button>
-            <button type="button">
-              <img src="https://www.gcd.com.br/wp-content/uploads/2020/08/safe_image.jpg" alt="Lar das meninas" />
-            </button>
-            <button type="button">
-              <img src="https://www.gcd.com.br/wp-content/uploads/2020/08/safe_image.jpg" alt="Lar das meninas" />
-            </button>
-          </div>
+            <div className="images">
+              {imagens[0].map((image: string, index: number) => {
+                return (
+                  <button 
+                    key={`${image}_${index}`} 
+                    className={activeImageIndex === index ? 'active' : ''}
+                    type="button"
+                    onClick={() => setActiveImageIndex(index)}
+                  >
+                    <img src={image} alt={orphanage.name} />
+                  </button>
+                );
+              })}
+            </div>
+          </>
           
           <div className="orphanage-details-content">
             <h1>{orphanage.name}</h1>
