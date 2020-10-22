@@ -5,6 +5,7 @@ import { LeafletMouseEvent } from 'leaflet';
 import { useHistory } from 'react-router-dom';
 /** Componentes */
 import Sidebar from '../components/Sidebar';
+import { GrClose } from 'react-icons/gr'
 /** Utils */
 import firebase from "../config/firebase";
 import mapIcon from '../utils/mapIcon';
@@ -54,16 +55,22 @@ export default function CreateOrphanage() {
   
   async function handleSubmit(event:FormEvent) {
     event.preventDefault();
+    let erroSizeImage = true;
     const { latitude, longitude } = position;
     const OpeningHours = `De ${open_hours} a ${close_hours}`
-
+    
     if((images.length > 0) && !!latitude && !!longitude){
       let listAux: any[] = [];
       
       images.forEach((imagem, index) => {
+        if(imagem.size > 55000){
+          alert('tamanho da imagem muito grande');
+          erroSizeImage = false;
+          setErro(true)
+          return ;
+        }      
         listAux[index] = imagem.name;
       });
-      console.log(listAux);
       setImages(listAux);
       
       const orphanage = {
@@ -76,25 +83,47 @@ export default function CreateOrphanage() {
         opening_hours: OpeningHours,
         open_on_weekends
       }
+      if(erroSizeImage){
+        images.forEach((imagem) => {
+          firebase.storage().ref(`imagens/${imagem.name}`).put(imagem).then(() => {
+          }).catch(() => { return alert('erro no upload da imagem'); })
+        })
 
-      images.forEach((imagem) => {
-        firebase.storage().ref(`imagens/${imagem.name}`).put(imagem).then(() => {
-          console.log('ok', imagem.name);
-        }).catch(() => { return console.log('erro no upload da imagem'); })
-      })
-
-      firebase.database().ref('orphanage/').push(orphanage).then(() => {
-        alert('Cadastro realizado com sucesso!');
-    
-        history.push('/app');
-      }).catch(() => {
-        alert('algo de errado não esta certo.')
-      })
-
+        firebase.database().ref('orphanage/').push(orphanage).then(() => {
+          alert('Cadastro realizado com sucesso!');
+      
+          history.push('/app');
+        }).catch(() => {
+          alert('algo de errado não esta certo.')
+        })
+      }
     }else{ 
       alert('Coloque uma imagem ou sua localização no mapa.')
+      SetPosition({
+        latitude: 0,
+        longitude: 0
+      });
       setErro(true);
     }
+  }
+
+    
+  function removeImage(click:any, list: any[]) {
+    const imagemClick = +click.id;
+    const listImg = click.parentNode.parentNode
+    let newList: any[] = []
+    let aux = 0;
+    
+    if(list.length > 0){
+      listImg.removeChild(click.parentNode);      
+      for (let i = 0; i < list.length; i++) {
+        if(imagemClick !== i){
+          newList[aux++] = list[i]
+        }
+      }
+      setImages(newList)
+    }
+    
   }
 
   return (
@@ -148,15 +177,18 @@ export default function CreateOrphanage() {
             <div className="input-block">
               <label htmlFor="images">Fotos</label>
 
-              <div className="images-container">
-                {previewImages.map(image => (
-                  <img key={image} src={image} alt={name} />
+              <ul className="images-container">
+                {previewImages.map((image, index) => (
+                  <li key={`${index}`} >
+                    <GrClose className="close-image"/>
+                    <img id={`${index}`}  key={image} src={image} alt={name} onClick={(e) => removeImage(e.target ,images) }/>
+                  </li>
                 ))}
 
                 <label htmlFor="image[]" className="new-image">
                   <FiPlus size={24} color="#15b6d6" />
                 </label>
-              </div>
+              </ul>
 
               <input 
                 id="image[]"

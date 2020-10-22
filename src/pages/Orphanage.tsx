@@ -52,7 +52,8 @@ export default function Orphanage() {
     }
     
   }, [params.id]);
-  
+
+
   if (!orphanage || !imagens) {
     return <h1>Carregando...</h1>
   }
@@ -73,9 +74,9 @@ export default function Orphanage() {
                     key={`${image}_${index}`} 
                     className={activeImageIndex === index ? 'active' : ''}
                     type="button"
-                    onClick={() => setActiveImageIndex(index)}
+                    onClick={(e) => setActiveImageIndex(index) }
                   >
-                    <img src={image} alt={orphanage.name} />
+                    <img src={image} id={`${index}`} alt={orphanage.name} />
                   </button>
                 );
               })}
